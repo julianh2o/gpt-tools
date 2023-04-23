@@ -19,6 +19,7 @@
         "singleQuote": true
     },
     "dependencies": {
+        "@dqbd/tiktoken": "^1.0.6",
         "chalk": "^5.2.0",
         "commander": "^10.0.1",
         "lodash": "^4.17.21",

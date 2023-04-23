@@ -1,5 +1,16 @@
-async function readTemplate(file) {
-    const contents = await fs.readFile(file, 'utf-8')
+import fs from 'fs/promises'
+import _ from 'lodash'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+export const readTemplate = async (template) => {
+    const contents = await fs.readFile(
+        path.join(__dirname, `../templates/${template}`),
+        'utf-8'
+    )
     return (context) => {
         const evaluatedContent = _.template(contents)({ _, ...context })
         const lines = evaluatedContent.split('\n')
@@ -18,13 +29,7 @@ async function readTemplate(file) {
     }
 }
 
-async function runTemplate(model, template, context) {
+export const execTemplate = async (template, context) => {
     const f = await readTemplate(template)
-    const messages = f(context)
-    const completion = await openai.createChatCompletion({
-        model,
-        messages,
-    })
-    console.log(chalk.yellow(`Usage: ${JSON.stringify(completion.data.usage)}`))
-    return completion.data.choices[0].message.content
+    return f(context)
 }

@@ -1,12 +1,10 @@
 # system
 You are an AI who is helping to split documents into chunks so that they can be turned into Embeddings.
-To do this, you must provide a list of line number ranges that logically split the content up.
-The ranges can overlap and for each range.
+The chunks can overlap.
 Chunks should be encapsulate an logical chunk and could be as short as a sentence or as long as a paragraph. You will respond only in a single JSON array whose elements are objects with the following keys:
-start: first line
-end: last line
-summary: a summary of the content of this chunk
-keywords: a list of 1-5 keywords that are highly relevant to this chunk
+start: the start position (bytes) of the chunk
+end: the end position (bytes) of the chunk
+body: the body of the chunk containing an exact excerpt from the source text
 context: a list of keywords that capture the context in which this chunk appears
 
 # user
