@@ -2,6 +2,8 @@
 import { program } from 'commander'
 import { v4 as uuidv4 } from 'uuid'
 import * as embeddings from './embeddings.js'
+import * as templates from './templates.js'
+import * as files from './files.js'
 import * as gpt from './gpt.js'
 import fs from 'fs/promises'
 import _ from 'lodash'
@@ -32,10 +34,18 @@ program
     .description('Retrieves data from pinecone')
     .action(
         wrap(async (query) => {
-            const context = await getContext(query)
-            console.log(_.map(context, 'content').join('\n'))
+            const context = await embeddings.getContext(query)
+            console.log(context)
         })
     )
+
+program
+    .command('md')
+    .argument('<file>', 'file path')
+    .action(async (file) => {
+        const fullPath = path.join(process.cwd(), file)
+        console.log(await files.readDocxAsMarkdown(fullPath))
+    })
 
 program
     .command('purge')
@@ -63,21 +73,25 @@ program
     .description('Send a prompt to GPT-3')
     .action(
         wrap(async (prompt) => {
-            const matches = await getContext(prompt)
-            console.log({ matches })
-            const relevantEmbeddingsResponse = await runTemplate(
-                model,
-                'templates/selectMostRelevantEmbeddings.tmpl',
-                { matches, prompt }
+            const matches = await embeddings.getContext(prompt)
+            const mostRelevant = await gpt.chatCompletion(
+                await templates.execTemplate(
+                    'selectMostRelevantEmbeddings.tmpl',
+                    {
+                        matches,
+                        prompt,
+                    }
+                ),
+                { format: 'json' }
             )
-            const mostRelevant = JSON.parse(relevantEmbeddingsResponse)
             const filteredMatches = _.filter(matches, (match) =>
                 mostRelevant.includes(match.id)
             )
-            const response = await runTemplate(
-                model,
-                'templates/answerPromptWithContext.tmpl',
-                { matches: filteredMatches, prompt }
+            const response = await gpt.chatCompletion(
+                await templates.execTemplate('answerPromptWithContext.tmpl', {
+                    matches: filteredMatches,
+                    prompt,
+                })
             )
             console.log(response)
         })

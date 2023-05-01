@@ -38,6 +38,15 @@ export const tokensForMessages = (messages) => {
 }
 
 export const chatCompletion = async (messages, inputOptions = {}) => {
+    // const existing = await fs.readFile('/tmp/gpt.json', 'utf-8')
+    // const data = JSON.parse(existing)
+    // console.log(data.choices[0].message.content.substring(3380, 3650))
+    // const jsonRaw = data.choices[0].message.content
+    // const fixed = jsonRaw.replace(/\\\"/g, '\\\\"')
+    // console.log(fixed.substring(1628 - 100, 1628 + 200))
+    // const parsed = JSON.parse(fixed)
+    // return parsed
+
     const options = { ...defaultOptions, ...inputOptions }
     const tokens = tokensForMessages(messages)
     const maxResponseTokens = modelMaxTokens[options.model] - tokens - 100

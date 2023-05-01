@@ -54,20 +54,59 @@ export const getChunksForFile = async (file) => {
     return factory.f(file)
 }
 
-export const requestChunks = async (content, template) => {
+const requestChunksImpl = async (content, template) => {
     const messages = await templates.execTemplate(template, { content })
-    const tokens = gpt.tokensForMessages(messages)
-    if (tokens > 5000)
-        throw new Error('File too large to process in a single chunk')
     const chunks = await gpt.chatCompletion(messages, {
         format: 'json',
-        model: tokens > 2000 ? gpt.gpt4 : gpt.gpt3,
     })
-    return _.map(chunks, (chunk) => ({
-        id: uuidv4(),
-        tokens: gpt.tokensForString(chunk.body),
-        ...chunk,
+    return _.map(chunks, (chunk) => {
+        return {
+            ...chunk,
+            id: uuidv4(),
+            tokens: gpt.tokensForString(chunk.body),
+        }
+    })
+}
+
+const getSections = (content) => {
+    const tokenMax = 2000
+    const tokenTarget = 1500
+    const tokens = gpt.tokensForString(content)
+    if (tokens < tokenMax) return [content]
+
+    const lines = content.split('\n')
+    const linesWithTokens = lines.map((line) => ({
+        line,
+        tokens: gpt.tokensForString(line),
     }))
+
+    const sections = []
+    let currentSection = []
+    let currentSectionTokenCount = 0
+    for (const { line, tokens } of linesWithTokens) {
+        if (currentSectionTokenCount + tokens > tokenTarget) {
+            sections.push(currentSection.join('\n'))
+            currentSectionTokenCount = 0
+            currentSection = []
+        }
+        currentSectionTokenCount += tokens
+        currentSection.push(line)
+    }
+    sections.push(currentSection.join('\n'))
+
+    return sections
+}
+
+export const requestChunks = async (content, template) => {
+    const sections = getSections(content)
+    if (sections.length > 1)
+        console.log(`Split the content into ${sections.length} sections`)
+
+    const sectionChunks = []
+    for (const section of sections) {
+        sectionChunks.push(await requestChunksImpl(section, template))
+    }
+    return _.flatten(sectionChunks)
 }
 
 export const uploadChunks = async (chunks, metadata) => {
