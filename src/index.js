@@ -10,6 +10,7 @@ import _ from 'lodash'
 import chalk from 'chalk'
 import path from 'path'
 
+
 const outputError = (err) =>
     console.log(
         err.message,
@@ -38,6 +39,27 @@ program
             console.log(context)
         })
     )
+
+program
+    .command('do')
+    .argument('<file>', 'file path')
+    .argument('<prompt>', 'prompt')
+    .action(async (file,prompt) => {
+        const filePath = path.join(process.cwd(), file)
+        const code = await fs.readFile(filePath,"utf-8");
+        const refactored = await gpt.chatCompletion(
+            await templates.execTemplate(
+                'codeRefactor.tmpl',
+                {
+                    filePath,
+                    code,
+                    prompt,
+                }
+            ),
+        )
+        await fs.writeFile(`${filePath}.bak`,code,"utf-8");
+        await fs.writeFile(filePath,refactored,"utf-8");
+    })
 
 program
     .command('md')

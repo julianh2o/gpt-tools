@@ -4,6 +4,12 @@
     "description": "",
     "main": "index.js",
     "type": "module",
+    "prettier": {
+        "trailingComma": "es5",
+        "tabWidth": 4,
+        "semi": false,
+        "singleQuote": true
+    },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -12,19 +18,19 @@
     "bin": {
         "ai": "src/index.js"
     },
-    "prettier": {
-        "trailingComma": "es5",
-        "tabWidth": 4,
-        "semi": false,
-        "singleQuote": true
-    },
     "dependencies": {
+        "-": "^0.0.1",
         "@dqbd/tiktoken": "^1.0.6",
         "chalk": "^5.2.0",
         "commander": "^10.0.1",
+        "diff": "^5.1.0",
         "lodash": "^4.17.21",
+        "node-diff3": "^3.1.2",
         "openai": "^3.2.1",
         "pinecone-client": "^1.1.0",
         "uuid": "^9.0.0"
+    },
+    "devDependencies": {
+        "prettier-config-standard": "^5.0.0"
     }
 }
