@@ -30,6 +30,27 @@ const wrap = (fn) => {
 }
 
 program
+    .command('script')
+    .argument('<name>', 'name of the script')
+    .argument('<query>', 'functionality of the script')
+    .description('Creates a new script')
+    .action(
+        wrap(async (name,query) => {
+            const script = await gpt.chatCompletion(
+                await templates.execTemplate(
+                    'writeScript.tmpl',
+                    {
+                        name,
+                        query,
+                        context,
+                    }
+                ),
+            )
+            await fs.writeFile(path.join("./scripts/",name+".sh"),script,"utf-8");
+        })
+    )
+
+program
     .command('q')
     .argument('<query>', 'query to send to pinecone')
     .description('Retrieves data from pinecone')
